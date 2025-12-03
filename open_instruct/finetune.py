@@ -31,6 +31,7 @@ from typing import Literal
 
 import datasets
 import torch
+import torch.distributed as dist
 import transformers
 from accelerate import Accelerator, DataLoaderConfiguration
 from accelerate.accelerator import GradientAccumulationPlugin
@@ -350,6 +351,25 @@ class FlatArguments:
 
 
 def main(args: FlatArguments, tc: TokenizerConfig):
+    # ------------------------------------------------------------
+    # For single GPU mode, initialize PyTorch distributed with gloo backend
+    # to avoid NCCL segfaults. Accelerate will detect this and use the existing backend.
+    if not dist.is_initialized():
+        # Check if we're in single GPU mode (world size would be 1)
+        # Accelerate sets these environment variables
+        world_size = int(os.environ.get("WORLD_SIZE", "1"))
+        if world_size == 1:
+            os.environ.setdefault("MASTER_ADDR", "127.0.0.1")
+            os.environ.setdefault("MASTER_PORT", "29500")
+            dist.init_process_group(
+                backend="gloo",
+                init_method="tcp://127.0.0.1:29500",
+                rank=0,
+                world_size=1,
+                timeout=timedelta(seconds=args.timeout),
+            )
+            print("Initialized PyTorch distributed with gloo backend for single GPU mode")
+
     # ------------------------------------------------------------
     # Initialize the accelerator. We will let the accelerator handle device placement for us in this example.
     # If we're using tracking, we also need to initialize it here and it will by default pick up all supported trackers

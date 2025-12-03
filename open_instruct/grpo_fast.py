@@ -679,6 +679,20 @@ class PolicyTrainerRayProcess(RayProcess):
         np.random.seed(worker_seed)
         random.seed(worker_seed)
 
+        # For single GPU mode, initialize with gloo backend to avoid NCCL segfaults
+        # DeepSpeed will detect that distributed is already initialized and use the existing backend
+        if args.single_gpu_mode and not torch.distributed.is_initialized():
+            import os
+            os.environ.setdefault("MASTER_ADDR", "127.0.0.1")
+            os.environ.setdefault("MASTER_PORT", "29500")
+            torch.distributed.init_process_group(
+                backend="gloo",
+                init_method="tcp://127.0.0.1:29500",
+                rank=0,
+                world_size=1,
+                timeout=timedelta(minutes=args.backend_timeout),
+            )
+
         deepspeed.init_distributed(timeout=timedelta(minutes=args.backend_timeout))
 
         ds_config = get_train_ds_config(

@@ -1,6 +1,30 @@
+# Redirect temp directories and caches to SSD storage
+SSD_ROOT=/mnt/disks/ssd
+mkdir -p "$SSD_ROOT/ray_tmp"
+mkdir -p "$SSD_ROOT/uv_cache"
+mkdir -p "$SSD_ROOT/tmp"
+
+# Set environment variables to use SSD for temp files and caches
+export TMPDIR="$SSD_ROOT/tmp"
+export TMP="$SSD_ROOT/tmp"
+export TEMP="$SSD_ROOT/tmp"
+export RAY_TMPDIR="$SSD_ROOT/ray_tmp"
+export UV_CACHE_DIR="$SSD_ROOT/uv_cache"
+
 export VLLM_ALLOW_INSECURE_SERIALIZATION=1
 export VLLM_DISABLE_COMPILE_CACHE=1
-export VLLM_USE_V1=1    
+export VLLM_USE_V1=1
+
+# Configure NCCL for single GPU mode
+# For single GPU, NCCL should work fine - just disable network features that aren't needed
+# but don't disable too much or it will segfault
+export NCCL_IB_DISABLE=1
+export NCCL_P2P_DISABLE=1
+# Keep shared memory enabled (needed for local communication)
+export NCCL_SHM_DISABLE=0
+# Enable debug to diagnose issues
+export NCCL_DEBUG=INFO
+
 uv run python open_instruct/grpo_fast.py \
     --dataset_mixer_list ai2-adapt-dev/rlvr_gsm8k_zs 64 \
     --dataset_mixer_list_splits train \

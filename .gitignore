@@ -151,7 +151,6 @@ dmypy.json
 .pyre/
 
 .idea/
-.vscode
 .DS_Store
 
 **/open_ai_responses/**
