@@ -439,7 +439,8 @@ def main(args: FlatArguments, tc: TokenizerConfig):
             },
         )
         wandb_tracker = accelerator.get_tracker("wandb")
-        maybe_update_beaker_description(wandb_url=wandb_tracker.run.get_url())
+        if accelerator.is_main_process:
+            maybe_update_beaker_description(wandb_url=wandb_tracker.run.get_url())
     else:
         wandb_tracker = None  # for later eval launching
 
@@ -884,12 +885,13 @@ def main(args: FlatArguments, tc: TokenizerConfig):
                         accelerator.print(f"{metrics_to_log=}")
                     if args.with_tracking:
                         accelerator.log(metrics_to_log, step=completed_steps)
-                    maybe_update_beaker_description(
-                        current_step=completed_steps,
-                        total_steps=args.max_train_steps,
-                        start_time=start_time,
-                        wandb_url=wandb_tracker.run.get_url() if wandb_tracker is not None else None,
-                    )
+                    if accelerator.is_main_process:
+                        maybe_update_beaker_description(
+                            current_step=completed_steps,
+                            total_steps=args.max_train_steps,
+                            start_time=start_time,
+                            wandb_url=wandb_tracker.run.get_url() if wandb_tracker is not None else None,
+                        )
                     total_loss = 0
                     total_aux_loss = 0
 
@@ -954,6 +956,18 @@ def main(args: FlatArguments, tc: TokenizerConfig):
 
 
 if __name__ == "__main__":
+    if os.getenv("DEBUG_WITH_DEBUGPY") == "1":
+        try:
+            import debugpy
+
+            local_rank = int(os.getenv("LOCAL_RANK", "0"))
+            port = 5678 + local_rank
+            debugpy.listen(("0.0.0.0", port))
+            print(f"Waiting for debugger attach on port {port} (LOCAL_RANK={local_rank})...")
+            debugpy.wait_for_client()
+        except Exception as exc:  # pragma: no cover - best-effort debug helper
+            print(f"Failed to initialize debugpy debugging: {exc}")
+
     utils.check_oe_eval_internal()
 
     parser = ArgumentParserPlus((FlatArguments, TokenizerConfig))
