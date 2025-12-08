@@ -15,10 +15,13 @@ export NUM_PROCESSES=$((SLURM_NNODES * 8))
 
 export HF_HOME="/scratch/hf_home"
 export HF_TOKEN="<HF_TOKEN>"
+export DATASET_LOCAL_CACHE_DIR="/scratch/hieu/tulu3_8b_sft/local_dataset_cache/"
 
-# Optional (good practice): set cache dir to avoid NFS hangs
-export PREFIX_DIR="/scratch/hieu"
-
+export PREFIX_DIR="/scratch/hieu/tulu3_8b_sft_${i}"
+export OUTPUT_DIR="${PREFIX_DIR}/outputs"
+export EXP_NAME="tulu3_8b_sft_${i}"
+export DATASET_MIX_DIR="${PREFIX_DIR}/dataset_mix"
+export WANDB_PROJECT="tulu3_8b_sft_${i}"
 export TRITON_CACHE_DIR="$PREFIX_DIR/triton_cache"
 srun -l mkdir -p $TRITON_CACHE_DIR
 

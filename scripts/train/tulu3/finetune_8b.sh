@@ -9,7 +9,7 @@
 #SBATCH --time=30:00:00
 
 source .venv/bin/activate
-PREFIX_DIR="/scratch/hieu/"
+export PREFIX_DIR="/scratch/hieu/"
 
 export TRITON_CACHE_DIR="$PREFIX_DIR/triton_cache"
 
