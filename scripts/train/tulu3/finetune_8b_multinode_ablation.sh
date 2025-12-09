@@ -23,7 +23,8 @@ for i in {1..5}; do
     export OUTPUT_DIR="${PREFIX_DIR}/outputs"
     export EXP_NAME="tulu3_8b_sft_${i}"
     export DATASET_MIX_DIR="${PREFIX_DIR}/dataset_mix"
-    export WANDB_PROJECT="tulu3_8b_sft_${i}"
+    export WANDB_PROJECT="tulu3_8b_sft"
+    export SEED=$((8 + i))
     export TRITON_CACHE_DIR="$PREFIX_DIR/triton_cache"
     srun -l mkdir -p $TRITON_CACHE_DIR
 

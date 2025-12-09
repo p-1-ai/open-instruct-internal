@@ -6,6 +6,7 @@ echo "DATASET_MIX_DIR: $DATASET_MIX_DIR"
 echo "EXP_NAME: $EXP_NAME"
 echo "OUTPUT_DIR: $OUTPUT_DIR"
 echo "WANDB_PROJECT: $WANDB_PROJECT"
+echo "SEED: $SEED"
 
 source .venv/bin/activate
 
